@@ -1,0 +1,58 @@
+name: "elective_docker-ynov-tom_dupuy"
+
+services:
+  wordpress:
+    image: bitnami/wordpress:latest
+    environment:
+      WORDPRESS_DATABASE_HOST: ${WORDPRESS_DATABASE_HOST}
+      WORDPRESS_DATABASE_NAME: ${MYSQL_DATABASE_NAME}
+      WORDPRESS_DATABASE_USER: ${MYSQL_USER}
+      WORDPRESS_DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - wordpress_data:/bitnami/wordpress
+    deploy:
+      replicas: 2
+    networks:
+      - frontend
+      - backend
+
+  db:
+    image: bitnami/mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/bitnami/mysql
+    networks:
+      - backend
+
+  redis:
+    image: bitnami/redis:latest
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks:
+      - backend
+
+  nginx:
+    image: bitnami/nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/opt/bitnami/nginx/conf/server_blocks/myapp.conf:ro
+    depends_on:
+      - wordpress
+    networks:
+      - backend
+
+volumes:
+  wordpress_data:
+  db_data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
